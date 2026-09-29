@@ -1,7 +1,7 @@
 # Hack4Freedom Nairobi 2026
 
 📍 Nairobi, Kenya  
-🗓 September 22 – October 5, 2026
+📅 September 22 – October 5, 2026
 
 Hack4Freedom Nairobi 2026 is part of the Hack4Freedom hackathon series, a women-focused program building open-source freedom technology across the Global South.
 
@@ -91,6 +91,6 @@ The shared operating playbook (optional) is here:
 
 ## Organizing Team
 
-Hack4Freedom Nairobi 2026 is organized and operated by **Evento** as part of the broader Hack4Freedom program, in partnership with **Dada Devs**, a Bitcoin developer community focused on building for Africa.
+Hack4Freedom Nairobi 2026 is organized and operated by **Evento** as part of the broader Hack4Freedom program, in partnership with **Dada Devs**, a technical developer initiative building the next generation of African women in bitcoin and open-source technology.
 
 All cities in the Hack4Freedom series follow a shared playbook, curriculum, and operating model.
