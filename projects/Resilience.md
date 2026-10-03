@@ -132,14 +132,17 @@ Protection against common web threats
 2. Adreen Nyawira Githinji - Frontend Developer
 3. Wambugu Jane Rose Muthoni - Project Manager and Quality Asurance 
 4. Nelly Nakhero - Full Stack
-5. ⁠Mona Tanei - Backend and Deveops
+5. ⁠Mona Tanei - Backend and DevOps
 6. Grace Mugoiri - Backend developer
 7. Daisy Sawe - Fullstack
 
 ## Repository & Links
 Code: https://github.com/grace-mugoiri/Resilience
+
 Live demo: https://nostrresilience.vercel.app/
+
 Design : https://www.figma.com/design/C7ag3vSbPMNlPGSUsdR35b/Resilience-Project--Copy-?node-id=0-1&p=f
+
 Doccumentation : https://docs.google.com/document/d/1cTglV2gM-Pd3Q6vOzuVgDw67653x0izLysGKOH9ZOAw/edit?tab=t.6qv055ic8wze
 
 ## Status
@@ -181,3 +184,6 @@ These are considered part of the project's security and future engineering work.
 1. Strengthen privacy and security
 2. Implement decentralized communication
 3. Implement counselor verification
+4. Improve offline and low-connectivity support
+5. Integrate Lightning payments
+6. Validate the product with real users and organizations
