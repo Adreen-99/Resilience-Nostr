@@ -139,7 +139,8 @@ Protection against common web threats
 ## Repository & Links
 Code: https://github.com/grace-mugoiri/Resilience
 Live demo: https://nostrresilience.vercel.app/
-Design
+Design : https://www.figma.com/design/C7ag3vSbPMNlPGSUsdR35b/Resilience-Project--Copy-?node-id=0-1&p=f
+Doccumentation : https://docs.google.com/document/d/1cTglV2gM-Pd3Q6vOzuVgDw67653x0izLysGKOH9ZOAw/edit?tab=t.6qv055ic8wze
 
 ## Status
 Resilience is currently a working prototype / proof of concept demonstrating the core product experience and architectural direction.
