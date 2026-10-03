@@ -97,21 +97,16 @@ This separates professional verification from the platform itself.
 
 ## Technology Stack
 Frontend - React Native
+
 Backend - Python3
+
 Database - SQL Lite
 
-Decentralized communication
-Nostr for decentralized communication and event-based interactions
-Privacy-conscious encryption approaches
-Relay-based communication
+Decentralized and Relay communication - Nostr
 
 Nostr is not treated as a magic anonymity layer. The project recognizes that decentralized communication can still expose metadata and that browser, device, relay, and network security must also be considered.
 
-Payments
-
-Bitcoin Lightning
-Lightning-compatible wallets
-Zap/payment flows
+Payments - Bitcoin/Lightning (Zap/payment flows)
 
 The payment architecture is designed around non-custodial interaction rather than making Resilience the user's financial custodian.
 
@@ -131,10 +126,10 @@ Protection against common web threats
 1. Vanessa Kalondu - UI/UX Designer
 2. Adreen Nyawira Githinji - Frontend Developer
 3. Wambugu Jane Rose Muthoni - Project Manager and Quality Asurance 
-4. Nelly Nakhero - Full Stack
+4. Nelly Nakhero - Full Stack Developer
 5. ⁠Mona Tanei - Backend and DevOps
 6. Grace Mugoiri - Backend developer
-7. Daisy Sawe - Fullstack
+7. Daisy Sawe - Fullstack Developer
 
 ## Repository & Links
 Code: https://github.com/grace-mugoiri/Resilience
