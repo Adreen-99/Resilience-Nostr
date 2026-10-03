@@ -1,184 +1,188 @@
 # RESILIENCE
-Hack4Freedom Nairobi 2026
+> A privacy-first, pseudonymous pwa platform designed to help people experiencing gender-based violence find support, connect with trusted people and resources, built on Nostr and Lightning, with M-Pesa payouts for counselors and grants.
+
+---
 
 ## Overview
 
-A privacy-first, pseudonymous web platform designed to help people experiencing gender-based violence find support, connect with trusted people and resources, and maintain greater control over the information they share.
+Resilience is a Progressive Web App (PWA) that lets a survivor reach verified counselors, trusted local resources, and financial support **without handing over their identity**.
+
+- **Pseudonymous accounts.** No phone number or email. Each account is a Nostr keypair generated on the person's device and unlocked with a PIN.
+- **End-to-end encrypted conversations** between survivors and counselors, in small circles, and in support groups.
+- **Verified counselors.** A partner organization reviews credentials privately and signs an attestation. Survivors see only "verified", never documents or legal identity.
+- **Resource directory.** Shelters, legal support, medical services and rights information, with offline bundles.
+- **Grants and payouts.** Lightning-based wallet flows, settled to counselors and recipients through M-Pesa in KES.
+- **Safety by design.** Guest mode, one-press Exit with auto-lock, generic push notifications, and honest wording about what "delete" can and cannot do.
+
+Our guiding principle: **use Nostr for signed, encrypted communication, not as a replacement for every database.**
+
+---
+
 
 ## Problem
-People experiencing gender-based violence can face significant barriers when trying to seek help.
 
-Many digital platforms begin with questions such as:
+Survivors of abuse need someone safe to talk to, trustworthy local resources, and sometimes money to leave a dangerous situation. The tools they have today often work against them:
 
-What's your name?
-What's your phone number?
-What's your email?
-Where are you located?
+- **Identity-linked apps.** Phone-number-based messengers tie conversations to a real identity. An abuser who gets brief access to a phone can often see who the survivor has been talking to.
+- **Centralized message storage.** A breach, legal demand or insider can expose private conversations.
+- **Unverifiable counselors.** Survivors cannot tell a qualified counselor from a bad actor, and organizations cannot verify counselors without collecting sensitive documents.
+- **Traceable money.** Support funds usually move through channels that leave a visible trail, and payment relationships can themselves be dangerous to reveal.
+- **Metadata.** Even when content is encrypted, *who talks to whom* and *who looked at which shelter* can be enough to put someone at risk.
+- **Disconnected Access**: Survivors especially in poorly connected areas lack access to meaniningfull access when connectivity is limited.
+- **Fragmentation**: Relevant support and resources may exist in different places.
+- **Safety Concerns**: A support platform must consider what information it stores, where it goes, and what happens if a device or account is compromised.
 
-For someone in a sensitive or potentially unsafe situation, providing personal information can create an additional privacy concern.
-
-At the same time, support may be fragmented across counselors, peer communities, legal and medical resources, shelters, and financial assistance.
-
-This creates several challenges:
-
-Privacy: Sensitive support-seeking activity can expose personal information.
-Trust: People need confidence that the person or organization they are interacting with is legitimate.
-Control: Users should have meaningful control over what information they share.
-Access: Support should remain useful when connectivity is limited.
-Fragmentation: Relevant support and resources may exist in different places.
-Safety: A support platform must consider what information it stores, where it goes, and what happens if a device or account is compromised.
-
-The question we are exploring:
-
-Can we design a support platform where privacy and user control are part of the architecture from the beginning, rather than features added afterwards?
+---
 
 ## Solution
-Resilience provides a privacy-first entry point to support.
 
-Instead of making personal identity the starting point, the platform starts with the person's need for support.
+Resilience splits responsibilities so that no single component holds everything.
 
-The experience
+| Layer | Responsibility |
+|---|---|
+| **Device (PWA)** | Keys, PIN, backup words, plaintext messages, guest sessions, private records. All encryption happens here. |
+| **Nostr protocol** | Signed identities, encrypted messaging, counselor attestations, invitations, wallet communication |
+| **Private relays** | Store-and-forward encrypted events, offline delivery, access control, short retention, rate limiting |
+| **Backend (FastAPI + PostgreSQL)** | Credential review, resource directory, abuse handling, grants, internal KES ledger, M-Pesa payouts, generic push notifications |
 
-1. Enter safely
+```text
+Resilience PWA
+  ├── Local encrypted vault      keys, PIN, records, cached messages
+  ├── Nostr protocol layer       NIP-17 + NIP-44 + NIP-59
+  ├── Private Resilience relays  encrypted delivery, ACLs, expiration
+  └── Resilience API
+        counselor review · resource directory · reporting
+        grants and ledger · Lightning / M-Pesa · push notifications
+```
 
-The user accesses Resilience through a safety-conscious web experience.
+### Key design decisions
 
-2. Create a pseudonymous identity
+- **Private keys never leave the device.** The API and relays never receive survivor or counselor private keys, backup words, or PINs.
+- **Metadata-reducing messaging.** Private conversations use NIP-17 with NIP-44 encryption and NIP-59 gift wrapping. Every message gets a fresh random wrapper key, so relays see only an encrypted envelope addressed to a recipient.
+- **Dedicated private relays, not public ones.** Two relays for availability, authenticated with NIP-42, with restricted queries, event-kind allowlists and short retention.
+- **No public zaps.** NIP-57 receipts reveal who paid whom, which is the wrong default for survivor payments. Wallet commands use NIP-47 (Nostr Wallet Connect) between Resilience and an organization-controlled wallet.
+- **Counselor verification without exposing documents.** Credential files go to encrypted organization-controlled storage, never to relays. The organization signs an attestation with no legal name, document hash or license number. Clients check the signature, the trusted-organization registry, expiry and revocation before showing a badge.
+- **Guest mode.** A fresh ephemeral keypair per visit, short NIP-40 expiry tags, and local deletion on Exit.
+- **Small circles, private groups.** Circles are capped at three members, with no searchable directory. Support groups are enforced at the private relay with application-level encryption, never public Nostr channels, and encryption state rotates whenever membership changes.
+- **Honest security claims.** A four-digit PIN is a convenience lock, not a strong secret. Vault keys are also protected by a device-bound non-extractable key, and the UI never claims a PIN alone resists a capable offline attacker. Deleting locally does not delete copies held by recipients or relays, and the app says so.
 
-The user can interact without making their real-world identity a mandatory part of the experience.
+### Safety design documents
 
-3. Choose what they need
+We wrote these before the code, because the choices in them are hard to undo later:
 
-They can explore different forms of support, such as:
+- **Threat model and event design:** protected assets, trust boundaries, attacker scenarios, data-placement rules, the encrypted payload catalogue, relay policy requirements, and acceptance criteria for the first messaging milestone.
+- **Key-management design:** key inventory and lifecycle, PIN and vault key hierarchy, backup and restore, guest keys, organization key hierarchy, rotation, revocation and compromise handling, and browser hardening (strict CSP, no third-party scripts).
 
-Counseling
-Peer support
-Legal resources
-Medical resources
-Shelter
-Other support services
+---
 
-4. Find and connect
-
-The user can discover relevant counselors, communities, and resources.
-
-5. Communicate
-
-Resilience is designed around privacy-conscious communication and decentralized technologies.
-
-6. Stay in control
-
-The platform aims to minimize unnecessary data collection and give the user greater control over sensitive information.
-
-Privacy by design
-
-The core philosophy is:
-
-Collect less. Protect more.
-
-Rather than treating privacy as only a security feature, Resilience considers privacy throughout the product architecture.
-
-This includes exploring:
-
-Pseudonymous identities
-Local handling of sensitive information
-Encrypted communication
-Decentralized communication infrastructure
-Offline-aware workflows
-User-controlled data
-Privacy-conscious notifications and safety controls
-Counselor verification
-
-Resilience does not position itself as the professional licensing authority.
-
-The design allows trusted external organizations to provide verification or attestations. Resilience can then validate and display relevant verification states, such as whether an attestation is valid, expired, or revoked.
-
-This separates professional verification from the platform itself.
 
 ## Technology Stack
-Frontend - React Native
 
-Backend - Python3
+| Area | Technology |
+|---|---|
+| Freedom tech | **Nostr** (NIP-01, 17, 40, 42, 44, 47, 59; NIP-98 for HTTP auth; NIP-06 or NIP-49 for backup, still to be decided), **Lightning**, **M-Pesa** |
+| Frontend | Progressive Web App; local encrypted vault in IndexedDB; Web Crypto (device-bound keys), audited Nostr/secp256k1 library, Argon2id for the PIN KDF |
+| Backend | Python, FastAPI, `nostr-sdk` for relay connections and event verification |
+| Data | PostgreSQL (operational state and the authoritative ledger, never decrypted conversations) |
+| Relays | Two private relays (`strfry` as the starting point) with NIP-42 authentication and custom admission and query policies |
+| Storage | S3-compatible encrypted private bucket for counselor credentials, with short-lived signed upload URLs |
+| Workers | Background worker (Celery/Redis, Dramatiq or ARQ) for relay subscriptions, retries, expirations, notifications, and payment reconciliation |
+| Notifications | Web Push (VAPID) with generic content only |
+| Infrastructure | Docker Compose for local development; KMS/HSM and a secrets manager for organization and service keys |
 
-Database - SQL Lite
-
-Decentralized and Relay communication - Nostr
-
-Nostr is not treated as a magic anonymity layer. The project recognizes that decentralized communication can still expose metadata and that browser, device, relay, and network security must also be considered.
-
-Payments - Bitcoin/Lightning (Zap/payment flows)
-
-The payment architecture is designed around non-custodial interaction rather than making Resilience the user's financial custodian.
-
-Security & privacy
-Security considerations include:
-
-Pseudonymous identity
-Local handling of sensitive information
-Encryption
-Minimal data collection
-Privacy-conscious logging
-Session and account safety
-Quick-exit and local-data clearing concepts
-Protection against common web threats
+---
 
 ## Team
-1. Vanessa Kalondu - UI/UX Designer
-2. Adreen Nyawira Githinji - Frontend Developer
-3. Wambugu Jane Rose Muthoni - Project Manager and Quality Asurance 
-4. Nelly Nakhero - Full Stack Developer
-5. ⁠Mona Tanei - Backend and DevOps
-6. Grace Mugoiri - Backend developer
-7. Daisy Sawe - Fullstack Developer
+
+| Name | Role | GitHub |
+|---|---|---|
+| Vanessa Kalondu | UI/UX Designer | TODO |
+| Adreen Nyawira Githinji | Frontend Developer | TODO |
+| Wambugu Jane Rose Muthoni | Project Manager and Quality Asurance  | TODO |
+| Nelly Nakhero | Full Stack Developer | TODO |
+| Mona Tanei | Backend and DevOps | TODO |
+| Grace Mugoiri | Backend developer | TODO |
+| Daisy Sawe | Fullstack Developer | TODO |
 
 ## Repository & Links
-Code: https://github.com/grace-mugoiri/Resilience
 
-Live demo: https://nostrresilience.vercel.app/
+| Part | Link |
+|---|---|
+| Backend (`Dev` branch) | https://github.com/grace-mugoiri/Resilience/tree/Dev |
+| Frontend (`frontend` branch) | https://github.com/grace-mugoiri/Resilience/tree/frontend |
+| Design | https://www.figma.com/design/C7ag3vSbPMNlPGSUsdR35b/Resilience-Project--Copy-?node-id=0-1&p=f |
+| Doccumentation | https://github.com/grace-mugoiri/Resilience/blob/Dev/README.md |
+| Demo / video | TODO |
 
-Design : https://www.figma.com/design/C7ag3vSbPMNlPGSUsdR35b/Resilience-Project--Copy-?node-id=0-1&p=f
+### Running the backend locally
 
-Doccumentation : https://docs.google.com/document/d/1cTglV2gM-Pd3Q6vOzuVgDw67653x0izLysGKOH9ZOAw/edit?tab=t.6qv055ic8wze
+```bash
+cd backend
+cp .env.example .env
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+
+# generate a development platform key and signed config,
+# then copy the printed PLATFORM_PUBKEY=... into backend/.env
+python scripts/sign_config.py --dev
+
+docker compose up --build
+```
+
+Two relays start at `ws://localhost:7777` and `ws://localhost:7778`. Full setup, tests and troubleshooting are in `backend/README.md`.
+
+To check them, `nc -vz` confirms the port is open, a `curl` upgrade request should return `101 Switching Protocols`, and `websocat` should show a NIP-42 `AUTH` challenge. General Nostr clients such as Primal or Damus can only confirm reachability. They cannot validate NIP-17/44/59 handling or recipient restrictions, so that needs a purpose-built signed test client. Phones cannot reach `localhost` and may reject plain `ws://`, so phone testing needs `wss://`, with each relay's `relay_url` matching its public URL exactly because NIP-42 signs it.
+
+---
 
 ## Status
-Resilience is currently a working prototype / proof of concept demonstrating the core product experience and architectural direction.
 
-Currently demonstrated
-Responsive web application experience
-Survivor-oriented onboarding and support journey
-Counselor-oriented experience
-Pseudonymous identity concept
-Support and resource discovery
-Counselor profiles
-Privacy and safety-oriented interface
-Backend/API foundation
-Architecture prepared for decentralized communication and Lightning-based support
-Prototype integrations
+**Where we are:** Resilience is currently a working prototype with the proof of concept coded demonstrating the core product experience and architectural direction.
 
-Some integrations are currently represented through mocked or prototype implementations rather than production infrastructure.
+> TODO: tick only what you can demonstrate.
 
-These include areas such as:
+**Design**
+- [x] Threat model and Nostr event design
+- [x] Key-management design (key inventory, vault hierarchy, backup, rotation, revocation)
 
-Nostr communication
-External counselor verification
-Lightning wallet/payment integration
-Sensitive health-data workflows
-Certain backend services
+**Backend and relays**
+- [x] FastAPI backend with Docker Compose and two local relays
+- [x] Platform key and signed config script (`scripts/sign_config.py --dev`)
+- [x] NIP-42 authentication challenge issued by relays
+- [x] Real cryptographic event validation through `nostr-sdk` (event ID, Schnorr signature, kinds, tags, size, timestamps), replacing the placeholder validator
 
-This allows the team to demonstrate the intended user experience and technical architecture while clearly separating the current prototype from production-ready infrastructure.
+**Frontend (PWA)**
+- [x] Client-side key generation and PIN-encrypted vault
+- [x] Backup words and restore, fully on-device
+- [x] Auto-exit, lock, and clear-device behavior
 
-Important limitation
+**First vertical slice (the milestone that matters most)**
+- [x] Survivor generates an identity, sends an encrypted NIP-17 message, both relays accept it, and the counselor decrypts it, with neither relay nor backend able to read it
 
-Resilience does not claim to provide absolute anonymity or eliminate every privacy risk.
+**Work In Progress**
+-  M-Pesa payouts
 
-A web application can still be affected by browser security, device compromise, network metadata, relay metadata, screenshots, browser history, malicious extensions, and other factors outside the application's direct control.
+### Known limitations
 
-These are considered part of the project's security and future engineering work.
+We list these deliberately:
+
+- NIP-44 has documented limits around metadata hiding, forward secrecy and post-compromise security in relay-based messaging. We are not claiming Signal-equivalent guarantees.
+- We cannot guarantee deletion of messages already received by another participant or retained by a relay.
+- Confidentiality does not hold on a compromised or unlocked device, and we cannot prevent screenshots by a participant.
+- IP and timing metadata are only partly mitigated, and we make no network-anonymity claim.
+- Because keys live in the browser, cross-site scripting while the vault is unlocked equals key compromise. This is why the design requires a strict CSP and no third-party scripts.
+- **A professional threat-model and encryption review is required before any real survivor or real credentials use this system.**
+
+---
 
 ## Next Steps
-1. Strengthen privacy and security
-2. Implement decentralized communication
-3. Implement counselor verification
-4. Improve offline and low-connectivity support
-5. Integrate Lightning payments
-6. Validate the product with real users and organizations
+
+Ordered so identity and private messaging, which everything else depends on, come first.
+
+1. **Complete the messaging vertical slice** with automated tests for tampering, replay, expiry, oversized events, duplicate delivery from two relays, and guest-key deletion.
+2. **Deploy two private relays** with TLS, NIP-42, restricted queries, retention policies, monitoring and backups.
+3. **Mpesa integration:** M-Pesa payouts, idempotency and reconciliation.
+4. **Kenya pilot:** one partner organization and a small cohort of counselors, with legal and safeguarding input on credential retention and payment-key custody.
+5. **Independent security review and hardening** before production keys or real credentials are used.
